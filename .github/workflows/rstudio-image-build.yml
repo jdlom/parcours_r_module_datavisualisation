@@ -5,26 +5,31 @@ on:
     branches:
       - main
       - master
-    paths:
-      -'!**'
-      - '.github/workflows/rstudio-image-build.yml'
-      - 'Dockerfile'
-      - 'renv.lock'
-      
+
   pull_request:
     types:
       - created
     branches:
       - main
       - master
-    paths:
-      -'!**'
-      - '.github/workflows/rstudio-image-build.yml'
-      - 'Dockerfile'
-      - 'renv.lock'
       
   workflow_dispatch:
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      build-image: ${{ steps.filter.outputs.image-build }}
+    steps:
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          image-build:
+            - '.github/workflows/rstudio-image-build.yml'
+            - 'Dockerfile'
+            - 'renv.lock'
   build-rstudio-image:
+    needs: changes
+    if: ${{ needs.changes.outputs.build-image == 'true' }}
     uses: MTES-MCT/parcours-r/.github/workflows/rstudio-image-build.yml@master
